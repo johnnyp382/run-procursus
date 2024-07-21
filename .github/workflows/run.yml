@@ -1,86 +1,154 @@
-name: Run Procursus
+name: 'Install Procursus'
+description: 'Install the Procursus toolchain'
+author: 'beerpsi'
 
-on:
-  workflow_dispatch:
-    inputs:
-      rule:
-        description: "Rule to pass to make (e.g nano-package)"
-        required: true
-      target:
-        description: "Target to build for (e.g iphoneos-arm64)"
-        required: true
-        default: "iphoneos-arm64-rootless"
-      cfver:
-        description: "iOS version to build for (e.g 1800 for iOS 15)"
-        required: true
-        default: "2000"
-      source:
-        description: "Specific Procursus repository (e.g ProcursusTeam/Procursus)"
-        required: true
-        default: "johnnyp382/Procursus"
-      branch:
-        description: "Branch in source to checkout"
-        required: false
-        default: "main"
-      upload-base:
-        description: "Upload existant build_base"
-        required: false
-        default: "false"
-      upload-dist:
-        description: "Upload existant build_dist"
-        required: false
-        default: "true"
+inputs:
+  packages:
+    description: 'Space-delimited list of packages to install after bootstrapping'
+    required: false
+    default: null
+  cache:
+    description: 'Cache Procursus installation for faster bootstrapping next run'
+    required: false
+    default: true
+  cache-path:
+    description: 'Location to store the Procursus cache'
+    required: false
+    default: /usr/local/opt/__procursus_cache
+  mirror:
+    description: 'URL to Procursus repository'
+    required: false
+    default: 'https://apt.procurs.us'
+  suites:
+    description: 'Suites to use'
+    required: false
+    default: 'big_sur'
+  components:
+    description: 'Components to use'
+    required: false
+    default: 'main'
 
-jobs:
-  run-procursus:
-    name: Run ${{ github.event.inputs.rule }}
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          repository: "${{ github.event.inputs.source }}"
-          ref: "${{ github.event.inputs.branch }}"
+runs:
+  using: "composite"
+  steps:
+    - name: Initial macOS check
+      if: runner.os != 'macOS'
+      shell: bash
+      run: |
+        echo 'This action only works on runners with macOS>=11'
+        exit 1
 
-      - name: Setup Procursus
-        uses: beer-psi/procursus-action@v2.0.2
-        with:
-          packages: odcctools autoconf automake autopoint bash bison cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gzip ldid ld64 libtool make ncurses-bin openssl patch pkg-config po4a python3 sed tar triehash xz-utils zstd
-          cache: true
-          mirror: 'apt.procurs.us/'
+    - name: Setup environment
+      id: information
+      shell: bash
+      run: |
+        DARWIN_VERSION=`uname -r | cut -d'.' -f1 | tr -d '\n'`
+        echo "darwin_version=$DARWIN_VERSION" >> $GITHUB_OUTPUT
+        echo "procursus_bootstrapped=`if [[ -e '/opt/procursus/.procursus_strapped' ]]; then echo 'true'; else echo 'false'; fi`" >> $GITHUB_OUTPUT
 
-      - name: Build
-        run: |
-          gmake ${{ github.event.inputs.rule }} \
-            MEMO_TARGET=${{ github.event.inputs.target }} \
-            MEMO_CFVER=${{ github.event.inputs.cfver }} \
-            BUILD_ROOT="${{ github.workspace }}" NO_PGP=1
+        echo "mirror_slug=`echo ${{ inputs.mirror }} | awk -F'://' '{print $NF}'`" >> $GITHUB_OUTPUT
 
-      - name: Check for build_{base,dist}
-        id: info
-        run: |
-          if [ -d "build_base" ]; then
-              echo "::set-output name=build-base-exists::true"
-          else
-              echo "::set-output name=build-base-exists::false"
-          fi
+        if (( DARWIN_VERSION < 20 )); then
+          >&2 echo 'This action only works on runners with macOS>=11'
+          exit 1
+        fi
 
-          if [ -d "build_dist" ]; then
-              echo "::set-output name=build-dist-exists::true"
-          else
-              echo "::set-output name=build-dist-exists::false"
-          fi
+    - name: Restore cache
+      uses: actions/cache@v3
+      id: procursus-cache
+      if: steps.information.outputs.procursus_bootstrapped != 'true' && inputs.cache == 'true'
+      with:
+        path: ${{ inputs.cache-path }}
+        key: ${{ runner.os }}-${{ steps.information.outputs.mirror_slug }}-${{ inputs.suites }}-procursus
 
-      - name: Upload build_base
-        if: steps.info.outputs.build-base-exists == 'true' && github.event.inputs.upload-base == 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: build_base
-          path: build_base/
+    - name: Setup bootstrap
+      if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache != 'true' || steps.procursus-cache.outputs.cache-hit != 'true')
+      shell: bash
+      run: |
+        curl -L https://apt.procurs.us/bootstraps/big_sur/bootstrap-darwin-amd64.tar.zst | zstdcat - | sudo tar -xpkf - -C / || :
 
-      - name: Upload build_dist
-        if: steps.info.outputs.build-dist-exists == 'true' && github.event.inputs.upload-dist == 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: build_dist
-          path: build_dist/
+    - name: Restore bootstrap from cache
+      if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache == 'true' && steps.procursus-cache.outputs.cache-hit == 'true')
+      shell: bash
+      run: |
+        sudo mkdir -p ${{ inputs.cache-path }}/procursus/var/cache/apt/archives/partial \
+          ${{ inputs.cache-path }}/procursus/var/lib/apt/lists/partial
+        sudo rsync -aWlHh --inplace ${{ inputs.cache-path }}/procursus /opt
+
+    - name: Add Procusus to PATH
+      shell: bash
+      run: |
+        PROCURSUS_PATHS=("/opt/procursus/games" "/opt/procursus/sbin" "/opt/procursus/bin" "/opt/procursus/local/sbin" "/opt/procursus/local/bin")
+        for i in "${PROCURSUS_PATHS[@]}";
+        do
+          case ":$PATH:" in
+            *:$i:*) echo "$i is already in PATH, not adding";;
+            *) echo "$i" >> $GITHUB_PATH;;
+          esac
+        done
+
+        case ":$CPATH:" in
+          *:/opt/procursus/include:*) echo "/opt/procursus/include already in CPATH, not adding";;
+          *) echo "CPATH=$CPATH:/opt/procursus/include" >> $GITHUB_ENV;;
+        esac
+
+        case ":$LIBRARY_PATH:" in
+          *:/opt/procursus/lib:*) echo "/opt/procursus/lib already in LIBRARY_PATH, not adding";;
+          *) echo "LIBRARY_PATH=$LIBRARY_PATH:/opt/procursus/lib" >> $GITHUB_ENV;;
+        esac
+
+    - name: Create unprivileged user for apt method
+      shell: bash
+      run: |
+        # Taken from Procursus' apt.postinst
+        set -e
+        getHiddenUserUid()
+        {
+          local __UIDS=$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -ugr)
+          local __NewUID
+          for __NewUID in $__UIDS
+          do
+              if [[ $__NewUID -lt 499 ]] ; then
+                  break;
+              fi
+          done
+          echo $((__NewUID+1))
+        }
+
+        if ! id _apt &>/dev/null; then
+          # add unprivileged user for the apt methods
+          sudo dscl . -create /Users/_apt UserShell /usr/bin/false
+          sudo dscl . -create /Users/_apt NSFHomeDirectory /var/empty
+          sudo dscl . -create /Users/_apt PrimaryGroupID -1
+          sudo dscl . -create /Users/_apt UniqueID $(getHiddenUserUid)
+          sudo dscl . -create /Users/_apt RealName "APT Sandbox User"
+        else
+          echo "APT Sandbox User already exists, not creating"
+        fi
+
+    - name: Update bootstrap
+      shell: bash
+      run: |
+        echo -e 'Types: deb\nURIs: ${{ inputs.mirror }}\nSuites: ${{ inputs.suites }}\nComponents: ${{ inputs.components }}\n' | sudo tee /opt/procursus/etc/apt/sources.list.d/procursus.sources
+        sudo apt-get -y update 
+        sudo apt-get -y -o Dpkg::Options::="--force-confnew" --allow-downgrades dist-upgrade || :
+
+    - name: Cache bootstrap
+      if: steps.information.outputs.procursus_bootstrapped != 'true' && inputs.cache == 'true'
+      shell: bash
+      run: |
+        sudo mkdir -p ${{ inputs.cache-path }}
+        sudo rsync -alHh --inplace /opt/procursus ${{ inputs.cache-path }}
+        sudo rm -rf ${{ inputs.cache-path }}/procursus/var/cache/apt/archives/partial \
+          ${{ inputs.cache-path }}/procursus/var/lib/apt/lists/partial \
+          ${{ inputs.cache-path }}/procursus/Library/dpkg/triggers/Lock
+
+    - name: Install packages
+      shell: bash
+      if: inputs.packages
+      run: |
+        sudo apt-get install -y -o Dpkg::Options::="--force-confnew" ${{ inputs.packages }}
+
+branding:
+  icon: download-cloud
+  color: purple
