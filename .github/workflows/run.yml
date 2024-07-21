@@ -43,7 +43,7 @@ jobs:
           ref: "${{ github.event.inputs.branch }}"
 
       - name: Setup Procursus
-        uses: beerpiss/procursus-action@v1
+        uses: beer-psi/procursus-action@v2.0.2
         with:
           packages: odcctools autoconf automake autopoint bash bison cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gzip ldid ld64 libtool make ncurses-bin openssl patch pkg-config po4a python3 sed tar triehash xz-utils zstd
           cache: true
