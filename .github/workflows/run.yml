@@ -1,9 +1,35 @@
+name: Run Procursus
+
 on:
-  push:
-    branches:
-    - main
   workflow_dispatch:
-  pull_request: 
+    inputs:
+      rule:
+        description: "Rule to pass to make (e.g nano-package)"
+        required: true
+      target:
+        description: "Target to build for (e.g iphoneos-arm64)"
+        required: false
+        default: "iphoneos-arm64"
+      cfver:
+        description: "iOS version to build for (e.g 1800 for iOS 15)"
+        required: false
+        default: "1700"
+      source:
+        description: "Specific Procursus repository (e.g ProcursusTeam/Procursus)"
+        required: false
+        default: "ProcursusTeam/Procursus"
+      branch:
+        description: "Branch in source to checkout"
+        required: false
+        default: "main"
+      upload-base:
+        description: "Upload existant build_base"
+        required: false
+        default: "false"
+      upload-dist:
+        description: "Upload existant build_dist"
+        required: false
+        default: "true"
   
 jobs:
   procursus:
