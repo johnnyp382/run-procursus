@@ -78,77 +78,58 @@ jobs:
           
           echo "--- apt ---"
           apt-get
-  procursus-no-cache:
+  
+  run-procursus:
     runs-on: macos-latest
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
-    name: Installs Procursus (no cache)
+    name: Run ${{ github.event.inputs.rule }}
     steps:
-      - name: Installs Procursus with GitHub action 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          repository: "${{ github.event.inputs.source }}"
+          ref: "${{ github.event.inputs.branch }}"
+          
+      - name: Setup Procursus
         uses: beer-psi/procursus-action@v2.0.2
         with:
-         cache: false
-      - name: Tests
-        continue-on-error: true
-        run: |
-          echo "--- PATH ---"
-          echo $PATH
-          
-          echo "--- CPATH ---"
-          echo $CPATH
-          
-          echo "--- LIBRARY_PATH ---"
-          echo $LIBRARY_PATH
-          
-          echo "--- apt ---"
-          apt-get
-  procursus-installed-twice:
-    runs-on: macos-latest
-    if: "!contains(github.event.head_commit.message, 'skip-ci')"
-    name: Installs Procursus (twice)
-    steps:
-      - name: Installs Procursus with GitHub action 
-        uses: beer-psi/procursus-action@v2.0.2
-      - name: Installs ldid and make with the same action
-        uses: beer-psi/procursus-action@v2.0.2
-        with:
-          packages: ldid make
-      - name: Tests
-        continue-on-error: true
-        run: |
-          echo "--- PATH ---"
-          echo $PATH
-          
-          echo "--- CPATH ---"
-          echo $CPATH
-          
-          echo "--- LIBRARY_PATH ---"
-          echo $LIBRARY_PATH
-          
-          echo "--- apt ---"
-          apt list
-  procursus-custom-mirror:
-    runs-on: macos-latest
-    if: "!contains(github.event.head_commit.message, 'skip-ci')"
-    name: Installs Procursus with a different mirror
-    steps:
-      - name: Installs Procursus with GitHub action 
-        uses: beer-psi/procursus-action@v2.0.2
-        with:
-          mirror: https://apt.procurs.us
-          suites: big_sur
-          components: main testing
-      - name: Tests
-        continue-on-error: true
-        run: |
-          echo "--- PATH ---"
-          echo $PATH
-          
-          echo "--- CPATH ---"
-          echo $CPATH
-          
-          echo "--- LIBRARY_PATH ---"
-          echo $LIBRARY_PATH
-          
-          echo "--- apt ---"
-          apt list
+          packages: odcctools autoconf automake autopoint bash bison cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gzip ldid ld64 libtool make ncurses-bin openssl patch pkg-config po4a python3 sed tar triehash xz-utils zstd
+          cache: true
 
+      - name: Build
+        run: |
+          gmake ${{ github.event.inputs.rule }} \
+            MEMO_TARGET=${{ github.event.inputs.target }} \
+            MEMO_CFVER=${{ github.event.inputs.cfver }} \
+            BUILD_ROOT="${{ github.workspace }}" NO_PGP=1
+
+      - name: Check for build_{base,dist}
+        id: info
+        run: |
+          if [ -d "build_base" ]; then
+              echo "::set-output name=build-base-exists::true"
+          else
+              echo "::set-output name=build-base-exists::false"
+          fi
+
+          if [ -d "build_dist" ]; then
+              echo "::set-output name=build-dist-exists::true"
+          else
+              echo "::set-output name=build-dist-exists::false"
+          fi
+
+      - name: Upload build_base
+        if: steps.info.outputs.build-base-exists == 'true' && github.event.inputs.upload-base == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: build_base
+          path: build_base/
+
+      - name: Upload build_dist
+        if: steps.info.outputs.build-dist-exists == 'true' && github.event.inputs.upload-dist == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: build_dist
+          path: build_dist/
+
+          
