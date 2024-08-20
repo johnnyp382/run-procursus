@@ -32,6 +32,13 @@ on:
         default: "true"
   
 jobs:
+  Bootstrap:
+    runs-on: self-hosted
+    name: Bootstrap MacOS
+    steps: 
+      - name: Procursus Boot
+        uses: beerpiss/procursus-action@v2  # the v2 tag refers to the latest of major version 2 (currently 2.0)
+    
   procursus:
     runs-on: self-hosted
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
@@ -40,9 +47,7 @@ jobs:
       - name: Installs Procursus with GitHub action
         uses: beer-psi/procursus-action@v2.0.2
 
-      - name: Procursus Boot
-        uses: beerpiss/procursus-action@v2  # the v2 tag refers to the latest of major version 2 (currently 2.0)
-
+      
       - name: Tests
         continue-on-error: true
         run: |
