@@ -40,6 +40,8 @@ jobs:
       - name: Installs Procursus with GitHub action
         uses: beer-psi/procursus-action@v2.0.2
 
+      - name: Procursus Boot
+        uses: beerpiss/procursus-action@v2  # the v2 tag refers to the latest of major version 2 (currently 2.0)
 
       - name: Tests
         continue-on-error: true
