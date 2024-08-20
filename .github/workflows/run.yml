@@ -5,7 +5,7 @@ on:
     inputs:
       rule:
         description: "Rule to pass to make (e.g nano-package)"
-        required: true
+        required: false
       target:
         description: "Target to build for (e.g iphoneos-arm64)"
         required: false
