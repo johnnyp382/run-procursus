@@ -14,7 +14,7 @@ inputs:
   cache-path:
     description: 'Location to store the Procursus cache'
     required: false
-    default: /usr/local/opt/__procursus_cache
+    default: /opt/__procursus_cache
   mirror:
     description: 'URL to Procursus repository'
     required: false
@@ -65,7 +65,7 @@ runs:
       if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache != 'true' || steps.procursus-cache.outputs.cache-hit != 'true')
       shell: bash
       run: |
-        curl -L https://apt.procurs.us/bootstraps/big_sur/bootstrap-darwin-amd64.tar.zst | zstdcat - | sudo tar -xpkf - -C / || :
+        curl -L https://apt.procurs.us/bootstraps/big_sur/bootstrap-darwin-arm64.tar.zst | zstdcat - | sudo tar -xpkf - -C / || :
 
     - name: Restore bootstrap from cache
       if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache == 'true' && steps.procursus-cache.outputs.cache-hit == 'true')
