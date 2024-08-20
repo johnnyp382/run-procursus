@@ -38,6 +38,8 @@ jobs:
     steps: 
       - name: Procursus Boot
         uses: beerpiss/procursus-action@v2  # the v2 tag refers to the latest of major version 2 (currently 2.0)
+        with:
+          packages: apt autoconf automake autopoint bash bison build-essential ca-certificates clang-16 clang cmake-data cmake coreutils curl darwintools dash dirmngr docbook-xml docbook-xsl dpkg fakeroot file findutils flex gawk gettext-base gettext git gnupg-utils gnupg gpg-agent gpg-wks-client gpg-wks-server gpg gpgconf gpgsm gpgv grep groff gzip ld64 ldid less libapt-pkg6.0 libarchive13 libassuan0 libbrotli1 libc++-16-dev libc++-dev libc-ares2 libclang-common-16-dev libclang-cpp16 libcurl4 libedit0 libffi8 libfl-dev libfl2 libgcrypt20 libgdbm6 libglib2.0-0 libgmp10 libgnutls30 libgpg-error0 libhogweed6 libidn2-0 libintl8 libksba8 libllvm16 liblocale-gettext-perl liblz4-1 liblzma5 liblzo2-2 libmagic1 libmd0 libmpfr6 libncursesw6 libnettle8 libnghttp2-14 libnpth0 libp11-kit0 libpcre2-8-0 libplist3 libpod-parser-perl libpython3.9 libreadline8 librtmp1 libsgmls-perl libsqlite3-1 libssh2-1 libssl3 libtapi libtasn1-6 libterm-readkey-perl libtextstyle0v5 libtool libunistring5 libusb-1.0-0 libuuid16 libuv1 libxar1 libxml2-utils libxml2 libxxhash0 libyaml-tiny-perl libz-ng2 libzstd1 llvm-16-dev llvm-16-linker-tools llvm-16-runtime llvm-16 llvm-dev m4 make ncurses-bin ncurses-term odcctools openssl patch perl pinentry pkg-config po4a procursus-keyring python3.9 python3 scdaemon sed tar triehash uikittools xz-utils zstd
     
   procursus:
     runs-on: self-hosted
