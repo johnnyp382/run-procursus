@@ -26,6 +26,10 @@ on:
         description: "Upload existant build_base"
         required: false
         default: "false"
+      upload-work:
+        description: "Upload existant build_work"
+        required: false
+        default: "true"
       upload-dist:
         description: "Upload existant build_dist"
         required: false
@@ -103,7 +107,7 @@ jobs:
             MEMO_CFVER=${{ github.event.inputs.cfver }} \
             BUILD_ROOT="${{ github.workspace }}" NO_PGP=1
 
-      - name: Check for build_{base,dist}
+      - name: Check for build_{base,work,dist}
         id: info
         run: |
           if [ -d "build_base" ]; then
@@ -111,6 +115,12 @@ jobs:
           else
               echo "::set-output name=build-base-exists::false"
           fi
+
+          if [ -d "build_work" ]; then
+              echo "::set-output name=build-work-exists::true"
+          else
+              echo "::set-output name=build-work-exists::false"
+          fi          
 
           if [ -d "build_dist" ]; then
               echo "::set-output name=build-dist-exists::true"
@@ -124,6 +134,13 @@ jobs:
         with:
           name: build_base
           path: build_base/
+
+      - name: Upload build_work
+        if: steps.info.outputs.build-work-exists == 'true' && github.event.inputs.upload-work == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: build_work
+          path: build_work/          
 
       - name: Upload build_dist
         if: steps.info.outputs.build-dist-exists == 'true' && github.event.inputs.upload-dist == 'true'
