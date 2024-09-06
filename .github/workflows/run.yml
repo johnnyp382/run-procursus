@@ -97,7 +97,7 @@ jobs:
       - name: Setup Procursus
         uses: beer-psi/procursus-action@v2.0.2
         with:
-          packages: odcctools autoconf automake autopoint bash bison cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gzip ldid ld64 libtool make ncurses-bin openssl patch pkg-config po4a python3 sed tar triehash xz-utils zstd
+          packages: odcctools autoconf automake autopoint bash bison cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gzip ldid ld64 libtool make ncurses-bin openssl patch pkg-config po4a python3 ruby sed tar triehash xz-utils zstd
           cache: true
 
       - name: Build
