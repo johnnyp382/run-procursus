@@ -29,7 +29,7 @@ on:
       upload-work:
         description: "Upload existant build_work"
         required: false
-        default: "true"
+        default: "false"
       upload-dist:
         description: "Upload existant build_dist"
         required: false
@@ -97,7 +97,7 @@ jobs:
       - name: Setup Procursus
         uses: beer-psi/procursus-action@v2.0.2
         with:
-          packages: odcctools autoconf automake autopoint bash bison cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gzip ldid ld64 libtool make ncurses-bin openssl patch pkg-config po4a python3 ruby sed tar triehash xz-utils zstd
+          packages: odcctools autoconf automake autopoint bash bison build-essential cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gzip ldid ld64 libtool make ncurses-bin openssl patch pkg-config po4a python3 ruby sed tar triehash xz-utils zstd
           cache: true
 
       - name: Build
