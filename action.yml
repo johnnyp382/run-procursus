@@ -33,14 +33,14 @@ runs:
   steps:
     - name: Initial macOS check
       if: runner.os != 'macOS'
-      shell: zsh
+      shell: bash
       run: |
         echo 'This action only works on runners with macOS>=11'
         exit 1
 
     - name: Setup environment
       id: information
-      shell: zsh
+      shell: bash
       run: |
         DARWIN_VERSION=`uname -r | cut -d'.' -f1 | tr -d '\n'`
         echo "darwin_version=$DARWIN_VERSION" >> $GITHUB_OUTPUT
@@ -63,13 +63,13 @@ runs:
 
     - name: Setup bootstrap
       if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache != 'true' || steps.procursus-cache.outputs.cache-hit != 'true')
-      shell: zsh
+      shell: bash
       run: |
         curl -L https://apt.procurs.us/bootstraps/big_sur/bootstrap-darwin-arm64.tar.zst | zstdcat - | sudo tar -xpkf - -C / || :
 
     - name: Restore bootstrap from cache
       if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache == 'true' && steps.procursus-cache.outputs.cache-hit == 'true')
-      shell: zsh
+      shell: bash
       run: |
         sudo mkdir -p ${{ inputs.cache-path }}/procursus/var/cache/apt/archives/partial \
           ${{ inputs.cache-path }}/procursus/var/lib/apt/lists/partial
@@ -98,7 +98,7 @@ runs:
         esac
 
     - name: Create unprivileged user for apt method
-      shell: zsh
+      shell: bash
       run: |
         # Taken from Procursus' apt.postinst
         set -e
@@ -127,7 +127,7 @@ runs:
         fi
 
     - name: Update bootstrap
-      shell: zsh
+      shell: bash
       run: |
         echo -e 'Types: deb\nURIs: ${{ inputs.mirror }}\nSuites: ${{ inputs.suites }}\nComponents: ${{ inputs.components }}\n' | sudo tee /opt/procursus/etc/apt/sources.list.d/procursus.sources
         sudo apt-get -y update 
@@ -135,7 +135,7 @@ runs:
 
     - name: Cache bootstrap
       if: steps.information.outputs.procursus_bootstrapped != 'true' && inputs.cache == 'true'
-      shell: zsh
+      shell: bash
       run: |
         sudo mkdir -p ${{ inputs.cache-path }}
         sudo rsync -alHh --inplace /opt/procursus ${{ inputs.cache-path }}
@@ -144,7 +144,7 @@ runs:
           ${{ inputs.cache-path }}/procursus/Library/dpkg/triggers/Lock
 
     - name: Install packages
-      shell: zsh
+      shell: bash
       if: inputs.packages
       run: |
         sudo apt-get install -y -o Dpkg::Options::="--force-confnew" ${{ inputs.packages }}
