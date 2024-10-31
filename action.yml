@@ -13,8 +13,8 @@ inputs:
     default: true
   cache-path:
     description: 'Location to store the Procursus cache'
-    required: false
-    default: /opt/__procursus_cache
+    required: true
+    default: /opt
   mirror:
     description: 'URL to Procursus repository'
     required: false
@@ -26,7 +26,11 @@ inputs:
   components:
     description: 'Components to use'
     required: false
-    default: 'main'
+    default: 'main testing'
+  architectures:
+    description: 'Architectures to use'
+    required: false
+    default: 'darwin-arm64 darwin-arm64e'
 
 runs:
   using: "composite"
@@ -76,9 +80,9 @@ runs:
         sudo rsync -aWlHh --inplace ${{ inputs.cache-path }}/procursus /opt
 
     - name: Add Procusus to PATH
-      shell: zsh
+      shell: bash
       run: |
-        PROCURSUS_PATHS=("/opt/procursus/games" "/opt/procursus/sbin" "/opt/procursus/bin" "/opt/procursus/local/sbin" "/opt/procursus/local/bin")
+        PROCURSUS_PATHS=("/opt/procursus/libexec" "/opt/procursus/sbin" "/opt/procursus/bin")
         for i in "${PROCURSUS_PATHS[@]}";
         do
           case ":$PATH:" in
