@@ -11,7 +11,7 @@ inputs:
     description: 'Cache Procursus installation for faster bootstrapping next run'
     required: false
     default: true
-  cache-path:
+  cache-path: /opt
     description: 'Location to store the Procursus cache'
     required: true
     default: /opt
