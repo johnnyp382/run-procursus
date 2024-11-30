@@ -70,6 +70,7 @@ runs:
       shell: bash
       run: |
         curl -L https://apt.procurs.us/bootstraps/big_sur/bootstrap-darwin-arm64.tar.zst | zstdcat - | sudo tar -xpkf - -C / || :
+        curl -L https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1900/build-essential/build-essential_16.2_iphoneos-arm64.deb | dpkg-deb -x - $HOME
 
     - name: Restore bootstrap from cache
       if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache == 'true' && steps.procursus-cache.outputs.cache-hit == 'true')
