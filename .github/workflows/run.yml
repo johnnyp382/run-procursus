@@ -39,8 +39,11 @@ jobs:
   procursus:
     name: Build
     runs-on: macos-latest
-
+  
     steps:
+      - name: Installs Procursus with GitHub action
+        uses: beer-psi/procursus-action@v2.0.2
+
       - name: Checkout
         uses: actions/checkout@main
 
@@ -60,12 +63,7 @@ jobs:
           sparse-checkout: iPhoneOS16.5.sdk
           path: theos/sdks
 
-    runs-on: macos-latest
-    if: "!contains(github.event.head_commit.message, 'skip-ci')"
-    name: Installs Procursus
-    steps:
-      - name: Installs Procursus with GitHub action
-        uses: beer-psi/procursus-action@v2.0.2
+    
       
       - name: Tests
         continue-on-error: true
