@@ -37,33 +37,12 @@ on:
   
 jobs:
   procursus:
-    name: Build
-    runs-on: macos-latest
-  
+    runs-on: self-hosted
+    if: "!contains(github.event.head_commit.message, 'skip-ci')"
+    name: Installs Procursus
     steps:
       - name: Installs Procursus with GitHub action
         uses: beer-psi/procursus-action@v2.0.2
-
-      - name: Checkout
-        uses: actions/checkout@main
-
-      - name: Checkout theos/theos
-        uses: actions/checkout@main
-        with:
-          repository: theos/theos
-          ref: master
-          submodules: recursive
-          path: theos
-
-      - name: Checkout theos/sdks
-        uses: actions/checkout@main
-        with:
-          repository: theos/sdks
-          ref: master
-          sparse-checkout: iPhoneOS16.5.sdk
-          path: theos/sdks
-
-    
       
       - name: Tests
         continue-on-error: true
@@ -81,7 +60,7 @@ jobs:
           apt-get
           
   procursus-with-packages:
-    runs-on: macos-latest
+    runs-on: self-hosted
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
     name: Installs Procursus with extra packages
     steps:
@@ -105,7 +84,7 @@ jobs:
           apt-get
   
   run-procursus:
-    runs-on: macos-latest
+    runs-on: self-hosted
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
     name: Run ${{ github.event.inputs.rule }}
     steps:
@@ -123,12 +102,10 @@ jobs:
 
       - name: Build
         run: |
-          export THEOS=theos
           gmake ${{ github.event.inputs.rule }} \
             MEMO_TARGET=${{ github.event.inputs.target }} \
             MEMO_CFVER=${{ github.event.inputs.cfver }} \
             BUILD_ROOT="${{ github.workspace }}" NO_PGP=1
-
       - name: Check for build_{base,work,dist}
         id: info
         run: |
@@ -137,19 +114,16 @@ jobs:
           else
               echo "::set-output name=build-base-exists::false"
           fi
-
           if [ -d "build_work" ]; then
               echo "::set-output name=build-work-exists::true"
           else
               echo "::set-output name=build-work-exists::false"
           fi          
-
           if [ -d "build_dist" ]; then
               echo "::set-output name=build-dist-exists::true"
           else
               echo "::set-output name=build-dist-exists::false"
           fi
-
       - name: Upload build_base
         if: steps.info.outputs.build-base-exists == 'true' && github.event.inputs.upload-base == 'true'
         uses: actions/upload-artifact@v3
