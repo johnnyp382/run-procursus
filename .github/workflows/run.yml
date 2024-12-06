@@ -59,13 +59,13 @@ jobs:
           echo "--- apt ---"
           apt-get
 
-  Theos-SDK:
-    - uses: Randomblock1/theos-action@v1.4
-      with:
+      - name: Install Theos
+        uses: Randomblock1/theos-action@v1.4
+        with:
     # All of these are optional. Defaults are filled in below.
     
     # This is where Theos is downloaded to.
-      theos-dir: 'theos'
+          theos-dir: 'theos'
           
   procursus-with-packages:
     runs-on: macos-latest
