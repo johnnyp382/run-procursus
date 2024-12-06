@@ -82,7 +82,7 @@ runs:
     - name: Add Procusus to PATH
       shell: bash
       run: |
-        PROCURSUS_PATHS=("/opt/procursus/libexec" "/opt/procursus/sbin" "/opt/procursus/bin")
+        PROCURSUS_PATHS=("/opt/procursus/libexec" "/opt/procursus/sbin" "/opt/procursus/bin" "/opt/theos")
         for i in "${PROCURSUS_PATHS[@]}";
         do
           case ":$PATH:" in
@@ -99,6 +99,11 @@ runs:
         case ":$LIBRARY_PATH:" in
           *:/opt/procursus/lib:*) echo "/opt/procursus/lib already in LIBRARY_PATH, not adding";;
           *) echo "LIBRARY_PATH=$LIBRARY_PATH:/opt/procursus/lib" >> $GITHUB_ENV;;
+        esac
+
+        case ":$THEOS:" in
+          *:/opt/theos:*) echo "/opt/theos already in PATH, not adding";;
+          *) echo "THEOS=$THEOS:/opt/theos" >> $GITHUB_ENV;;
         esac
 
     - name: Create unprivileged user for apt method
