@@ -37,7 +37,7 @@ on:
   
 jobs:
   procursus:
-    runs-on: macos-latest
+    runs-on: self-host
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
     name: Installs Procursus
     steps:
@@ -68,7 +68,7 @@ jobs:
           theos-dir: 'theos'
           
   procursus-with-packages:
-    runs-on: macos-latest
+    runs-on: self-host
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
     name: Installs Procursus with extra packages
     steps:
@@ -109,7 +109,7 @@ jobs:
           THEOS: ${{ github.workspace }}/theos
 
   run-procursus:
-    runs-on: macos-latest
+    runs-on: self-host
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
     name: Run ${{ github.event.inputs.rule }}
     steps:
