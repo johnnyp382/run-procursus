@@ -126,23 +126,21 @@ jobs:
           fi
       - name: Upload build_base
         if: steps.info.outputs.build-base-exists == 'true' && github.event.inputs.upload-base == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: build_base
           path: build_base/
 
       - name: Upload build_work
         if: steps.info.outputs.build-work-exists == 'true' && github.event.inputs.upload-work == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: build_work
           path: build_work/          
 
       - name: Upload build_dist
         if: steps.info.outputs.build-dist-exists == 'true' && github.event.inputs.upload-dist == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: build_dist
           path: build_dist/
-
-          
