@@ -67,7 +67,7 @@ jobs:
       - name: Installs Procursus with GitHub action
         uses: beer-psi/procursus-action@v2.0.2
         with:
-          packages: cmake clang
+          packages: cmake
       - name: Tests
         continue-on-error: true
         run: |
