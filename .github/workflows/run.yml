@@ -97,7 +97,7 @@ jobs:
       - name: Setup Procursus
         uses: beer-psi/procursus-action@v2.0.2
         with:
-          packages: odcctools autoconf automake autopoint bash bison build-essential cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gtk-doc-tools gzip ldid ld64 libbrotli1 libbrotli-dev libc-ares2 libc-ares-dev libffi8 libgmp10 libgmpxx4ldbl libidn2-0 libidn2-dev libjemalloc2 libnghttp2-14 libnghttp2-dev libruby3.1 libssl3 libssl1.1 libtool libuv1 libuv1-dev libcrypt2 libyaml-0-2 m4 make libncursesw6 ncurses-term ncurses-bin openssl patch pkg-config po4a python3 readline ruby ruby3.1 sed tar triehash xz-utils zstd
+          packages: odcctools autoconf automake autopoint bash bison build-essential cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg golang golang-src golang-go golang-1.22 golang-1.22-go golang-1.22-src groff grep gtk-doc-tools gzip ldid ld64 libbrotli1 libbrotli-dev libc-ares2 libc-ares-dev libffi8 libgmp10 libgmpxx4ldbl libidn2-0 libidn2-dev libjemalloc2 libnghttp2-14 libnghttp2-dev libruby3.1 libssl3 libssl1.1 libtool libuv1 libuv1-dev libcrypt2 libyaml-0-2 m4 make libncursesw6 ncurses-term ncurses-bin openssl patch pkg-config po4a python3 readline ruby ruby3.1 sed tar triehash xz-utils zstd
           cache: true
 
       - name: Build
