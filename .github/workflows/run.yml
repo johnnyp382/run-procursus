@@ -35,7 +35,8 @@ on:
         required: false
         default: "true"
 
-run-procursus:
+jobs:
+  procursus:
   runs-on: macos-14
   if: "!contains(github.event.head_commit.message, 'skip-ci')"
   name: Run ${{ github.event.inputs.rule }}
