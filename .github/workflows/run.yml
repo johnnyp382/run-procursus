@@ -1,25 +1,5 @@
-name: Run Procursus & Build on macOS ARM64
+name: Run Procursus
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-
-jobs:
-  build:
-    runs-on: macos-14
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Configure for ARM64
-        run: |
-          arch -arm64 ./configure
-
-      - name: Build for ARM64
-        run: |
-          arch -arm64 make
 on:
   workflow_dispatch:
     inputs:
@@ -61,6 +41,14 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
     name: Installs Procursus
     steps:
+      - name: Configure for ARM64
+        run: |
+          arch -arm64 ./configure
+
+      - name: Build for ARM64
+        run: |
+          arch -arm64 make
+
       - name: Installs Procursus with GitHub action
         uses: beer-psi/procursus-action@v2.0.2
       
