@@ -1,146 +1,61 @@
-name: Run Procursus
+run-procursus:
+  runs-on: macos-14
+  if: "!contains(github.event.head_commit.message, 'skip-ci')"
+  name: Run ${{ github.event.inputs.rule }}
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        repository: "${{ github.event.inputs.source }}"
+        ref: "${{ github.event.inputs.branch }}"
+        
+    - name: Setup Procursus
+      uses: beer-psi/procursus-action@v2.0.2
+      with:
+        packages: odcctools autoconf automake autopoint bash bison build-essential cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gtk-doc-tools gzip ldid l...
+        cache: true
 
-on:
-  workflow_dispatch:
-    inputs:
-      rule:
-        description: "Rule to pass to make (e.g nano-package)"
-        required: false
-      target:
-        description: "Target to build for (e.g iphoneos-arm64)"
-        required: false
-        default: "iphoneos-arm64-rootless"
-      cfver:
-        description: "iOS version to build for (e.g 1800 for iOS 15)"
-        required: false
-        default: "2000"
-      source:
-        description: "Specific Procursus repository (e.g ProcursusTeam/Procursus)"
-        required: false
-        default: "johnnyp382/Procursus"
-      branch:
-        description: "Branch in source to checkout"
-        required: false
-        default: "main"
-      upload-base:
-        description: "Upload existant build_base"
-        required: false
-        default: "false"
-      upload-work:
-        description: "Upload existant build_work"
-        required: false
-        default: "false"
-      upload-dist:
-        description: "Upload existant build_dist"
-        required: false
-        default: "true"
-  
-jobs:
-  procursus:
-    runs-on: macos-14
-    if: "!contains(github.event.head_commit.message, 'skip-ci')"
-    name: Installs Procursus
-    steps:
-      - name: Installs Procursus with GitHub action
-        uses: beer-psi/procursus-action@v2.0.2
-      
-      - name: Tests
-        continue-on-error: true
-        run: |
-          echo "--- PATH ---"
-          echo $PATH
-          
-          echo "--- CPATH ---"
-          echo $CPATH
-          
-          echo "--- LIBRARY_PATH ---"
-          echo $LIBRARY_PATH
-          
-          echo "--- apt ---"
-          apt-get
-          
-  procursus-with-packages:
-    runs-on: macos-14
-    if: "!contains(github.event.head_commit.message, 'skip-ci')"
-    name: Installs Procursus with extra packages
-    steps:
-      - name: Installs Procursus with GitHub action
-        uses: beer-psi/procursus-action@v2.0.2
-        with:
-          packages: cmake
-      - name: Tests
-        continue-on-error: true
-        run: |
-          echo "--- PATH ---"
-          echo $PATH
-          
-          echo "--- CPATH ---"
-          echo $CPATH
-          
-          echo "--- LIBRARY_PATH ---"
-          echo $LIBRARY_PATH
-          
-          echo "--- apt ---"
-          apt-get
+    - name: Build
+      run: |
+        arch -arm64 gmake ${{ github.event.inputs.rule }} \
+          MEMO_TARGET=${{ github.event.inputs.target }} \
+          MEMO_CFVER=${{ github.event.inputs.cfver }} \
+          BUILD_ROOT="${{ github.workspace }}" NO_PGP=1
+    - name: Check for build_{base,work,dist}
+      id: info
+      run: |
+        if [ -d "build_base" ]; then
+            echo "::set-output name=build-base-exists::true"
+        else
+            echo "::set-output name=build-base-exists::false"
+        fi
+        if [ -d "build_work" ]; then
+            echo "::set-output name=build-work-exists::true"
+        else
+            echo "::set-output name=build-work-exists::false"
+        fi          
+        if [ -d "build_dist" ]; then
+            echo "::set-output name=build-dist-exists::true"
+        else
+            echo "::set-output name=build-dist-exists::false"
+        fi
+    - name: Upload build_base
+      if: steps.info.outputs.build-base-exists == 'true' && github.event.inputs.upload-base == 'true'
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build_base
+        path: build_base/
 
-  run-procursus:
-    runs-on: macos-14
-    if: "!contains(github.event.head_commit.message, 'skip-ci')"
-    name: Run ${{ github.event.inputs.rule }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          repository: "${{ github.event.inputs.source }}"
-          ref: "${{ github.event.inputs.branch }}"
-          
-      - name: Setup Procursus
-        uses: beer-psi/procursus-action@v2.0.2
-        with:
-          packages: odcctools autoconf automake autopoint bash bison build-essential cmake curl docbook-xml docbook-xsl fakeroot findutils flex gawk git gnupg groff grep gtk-doc-tools gzip ldid ld64 libbrotli1 libbrotli-dev libc-ares2 libc-ares-dev libffi8 libgdbm6-locale libgmp10 libgmpxx4ldbl libidn2-0 libidn2-dev libjemalloc2 libnghttp2-14 libnghttp2-dev libtext-wrapi18n-perl libunicode-linebreak-perl libruby3.1 libssl3 libssl1.1 libtool libuv1 libuv1-dev libcrypt2 libyaml-0-2 m4 make libncursesw6 ncurses-term ncurses-bin openssl patch pkg-config po4a python3 readline ruby ruby3.1 sed tar triehash xz-utils zstd
-          cache: true
+    - name: Upload build_work
+      if: steps.info.outputs.build-work-exists == 'true' && github.event.inputs.upload-work == 'true'
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build_work
+        path: build_work/          
 
-      - name: Build
-        run: |
-          gmake ${{ github.event.inputs.rule }} \
-            MEMO_TARGET=${{ github.event.inputs.target }} \
-            MEMO_CFVER=${{ github.event.inputs.cfver }} \
-            BUILD_ROOT="${{ github.workspace }}" NO_PGP=1
-      - name: Check for build_{base,work,dist}
-        id: info
-        run: |
-          if [ -d "build_base" ]; then
-              echo "::set-output name=build-base-exists::true"
-          else
-              echo "::set-output name=build-base-exists::false"
-          fi
-          if [ -d "build_work" ]; then
-              echo "::set-output name=build-work-exists::true"
-          else
-              echo "::set-output name=build-work-exists::false"
-          fi          
-          if [ -d "build_dist" ]; then
-              echo "::set-output name=build-dist-exists::true"
-          else
-              echo "::set-output name=build-dist-exists::false"
-          fi
-      - name: Upload build_base
-        if: steps.info.outputs.build-base-exists == 'true' && github.event.inputs.upload-base == 'true'
-        uses: actions/upload-artifact@v4.6.0
-        with:
-          name: build_base
-          path: build_base/
-
-      - name: Upload build_work
-        if: steps.info.outputs.build-work-exists == 'true' && github.event.inputs.upload-work == 'true'
-        uses: actions/upload-artifact@v4.6.0
-        with:
-          name: build_work
-          path: build_work/          
-
-      - name: Upload build_dist
-        if: steps.info.outputs.build-dist-exists == 'true' && github.event.inputs.upload-dist == 'true'
-        uses: actions/upload-artifact@v4.6.0
-        with:
-          name: build_dist
-          path: build_dist/
+    - name: Upload build_dist
+      if: steps.info.outputs.build-dist-exists == 'true' && github.event.inputs.upload-dist == 'true'
+      uses: actions/upload-artifact@v4.6.0
+      with:
+        name: build_dist
+        path: build_dist/
