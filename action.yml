@@ -41,8 +41,6 @@ runs:
       run: |
         echo 'This action only works on runners with macOS>=11'
         exit 1
-      env:
-        RUNNER_ARCH: ARM64
 
     - name: Setup environment
       id: information
