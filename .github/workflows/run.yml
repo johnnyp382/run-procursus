@@ -1,3 +1,40 @@
+name: Run Procursus
+
+on:
+  workflow_dispatch:
+    inputs:
+      rule:
+        description: "Rule to pass to make (e.g nano-package)"
+        required: false
+      target:
+        description: "Target to build for (e.g iphoneos-arm64)"
+        required: false
+        default: "iphoneos-arm64-rootless"
+      cfver:
+        description: "iOS version to build for (e.g 1800 for iOS 15)"
+        required: false
+        default: "2000"
+      source:
+        description: "Specific Procursus repository (e.g ProcursusTeam/Procursus)"
+        required: false
+        default: "johnnyp382/Procursus"
+      branch:
+        description: "Branch in source to checkout"
+        required: false
+        default: "main"
+      upload-base:
+        description: "Upload existant build_base"
+        required: false
+        default: "false"
+      upload-work:
+        description: "Upload existant build_work"
+        required: false
+        default: "false"
+      upload-dist:
+        description: "Upload existant build_dist"
+        required: false
+        default: "true"
+
 run-procursus:
   runs-on: macos-14
   if: "!contains(github.event.head_commit.message, 'skip-ci')"
