@@ -60,15 +60,15 @@ jobs:
         id: info
         run: |
           if [ -d "build_base" ]; then
-              echo "::set-output name=build-base-exists::true"
+              echo "build-base-exists=true" >> $GITHUB_OUTPUT
           else
-              echo "::set-output name=build-base-exists::false"
+              echo "build-base-exists=false" >> $GITHUB_OUTPUT
           fi
 
           if [ -d "build_dist" ]; then
-              echo "::set-output name=build-dist-exists::true"
+              echo "build-base-exists=true" >> $GITHUB_OUTPUT
           else
-              echo "::set-output name=build-dist-exists::false"
+              echo "build-base-exists=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload build_base
