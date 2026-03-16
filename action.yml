@@ -69,15 +69,16 @@ runs:
       if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache != 'true' || steps.procursus-cache.outputs.cache-hit != 'true')
       shell: bash
       run: |
-        curl -L https://apt.procurs.us/bootstraps/big_sur/bootstrap-darwin-arm64.tar.zst | zstdcat - | sudo tar -xpkf - -C / || :
+        curl -L https://apt.procurs.us/bootstraps/big_sur/bootstrap-darwin-arm64.tar.zst | zstdcat - | sudo tar -xpkf - -C /
+        sudo touch /opt/procursus/.procursus_strapped
 
     - name: Restore bootstrap from cache
-      if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache == 'true' && steps.procursus-cache.outputs.cache-hit == 'true')
       shell: bash
       run: |
         sudo mkdir -p ${{ inputs.cache-path }}/procursus/var/cache/apt/archives/partial \
-          ${{ inputs.cache-path }}/procursus/var/lib/apt/lists/partial
+      ${{ inputs.cache-path }}/procursus/var/lib/apt/lists/partial
         sudo rsync -aWlHh --inplace ${{ inputs.cache-path }}/procursus /opt
+        sudo touch /opt/procursus/.procursus_strapped
 
     - name: Add Procusus to PATH
       shell: bash
