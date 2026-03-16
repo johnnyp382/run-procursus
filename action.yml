@@ -3,6 +3,10 @@ description: 'Install the Procursus toolchain'
 author: 'beerpsi'
 
 inputs:
+  cache-path:
+    description: 'Location to store the Procursus cache'
+    required: false
+    default: /opt
   packages:
     description: 'Space-delimited list of packages to install after bootstrapping'
     required: false
@@ -11,10 +15,6 @@ inputs:
     description: 'Cache Procursus installation for faster bootstrapping next run'
     required: false
     default: true
-  cache-path: /opt
-    description: 'Location to store the Procursus cache'
-    required: true
-    default: /opt
   mirror:
     description: 'URL to Procursus repository'
     required: false
@@ -63,7 +63,7 @@ runs:
       if: steps.information.outputs.procursus_bootstrapped != 'true' && inputs.cache == 'true'
       with:
         path: ${{ inputs.cache-path }}
-        key: ${{ runner.os }}-${{ steps.information.outputs.mirror_slug }}-${{ inputs.suites }}-procursus
+        key: procursus-${{ runner.os }}-${{ steps.information.outputs.darwin_version }}-${{ inputs.suites }}-${{ inputs.architectures }}
 
     - name: Setup bootstrap
       if: steps.information.outputs.procursus_bootstrapped != 'true' && (inputs.cache != 'true' || steps.procursus-cache.outputs.cache-hit != 'true')
